@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">BrightScreenWidget</string>
+    <string name="add_widget">Add widget</string>
+    <string name="up">Up</string>
+    <string name="down">Down</string>
+    <string name="light_up_the_screen">Light up the screen</string>
+    <string name="allow_the_app_to_change_screen_brightness">Allow the APP to change screen brightness</string>
+    <string name="this_phone_forbids_system_setting_modification">This phone forbids system setting modification</string>
+</resources>
