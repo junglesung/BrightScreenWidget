@@ -13,7 +13,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -32,20 +31,19 @@ public class BrightScreenWidget extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
-        CharSequence widgetText = context.getString(R.string.up);
-        if (isLightUp(context)) {
-            Log.d(LOG_TAG, "Show down");
-            widgetText = context.getString(R.string.down);
-        }
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.bright_screen_widget);
-        views.setTextViewText(R.id.appwidget_text, widgetText);
+        if (isLightUp(context)) {
+            views.setImageViewResource(R.id.imageView_light, R.mipmap.ic_light_down);
+        } else {
+            views.setImageViewResource(R.id.imageView_light, R.mipmap.ic_light_up);
+        }
 
         // Send intent when user click the widget
         Intent intent = new Intent(context, BrightScreenWidget.class);
         intent.setAction(ON_CLICK_INTENT_ACTION);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        views.setOnClickPendingIntent(R.id.appwidget_text, pendingIntent);
+        views.setOnClickPendingIntent(R.id.imageView_light, pendingIntent);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -72,9 +70,7 @@ public class BrightScreenWidget extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(LOG_TAG, "Received an intent");
         if (Objects.equals(intent.getAction(), ON_CLICK_INTENT_ACTION)) {
-            Log.d(LOG_TAG, "CLICK action");
             changeLight(context);
         }
         super.onReceive(context,intent);
@@ -90,7 +86,6 @@ public class BrightScreenWidget extends AppWidgetProvider {
 
     /**
      * Store current screen brightness settings to shared preference.
-     * @param context
      */
     static void rememberCurrentScreenBrightnessSetting(Context context) {
         int brightness = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
@@ -104,7 +99,6 @@ public class BrightScreenWidget extends AppWidgetProvider {
 
     /**
      * Restore last screen brightness settings from shared preference.
-     * @param context
      */
     static void restoreScreenBrightnessSetting(Context context) {
         SharedPreferences settings = context.getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE);
@@ -116,7 +110,6 @@ public class BrightScreenWidget extends AppWidgetProvider {
 
     /**
      * Maximize the screen brightness
-     * @param context
      */
     static void lightUp(Context context) {
         Log.d(LOG_TAG, "Light up");
@@ -164,7 +157,6 @@ public class BrightScreenWidget extends AppWidgetProvider {
      * To modify system setting, this widget must be granted permission ACTION_MANAGE_WRITE_SETTINGS.
      * The protection level of ACTION_MANAGE_WRITE_SETTINGS is "signature".
      * So do what it says. https://developer.android.com/reference/android/Manifest.permission.html#WRITE_SETTINGS
-     * @param context
      * @return Whether WRITE_SETTINGS is granted.
      */
     static boolean requestWriteSettingPermission(Context context) {
