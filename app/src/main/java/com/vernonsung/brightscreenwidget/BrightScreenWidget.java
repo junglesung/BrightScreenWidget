@@ -34,9 +34,9 @@ public class BrightScreenWidget extends AppWidgetProvider {
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.bright_screen_widget);
         if (isLightUp(context)) {
-            views.setImageViewResource(R.id.imageView_light, R.mipmap.ic_light_down);
+            views.setImageViewResource(R.id.imageView_light, R.drawable.ic_light_down);
         } else {
-            views.setImageViewResource(R.id.imageView_light, R.mipmap.ic_light_up);
+            views.setImageViewResource(R.id.imageView_light, R.drawable.ic_light_up);
         }
 
         // Send intent when user click the widget
