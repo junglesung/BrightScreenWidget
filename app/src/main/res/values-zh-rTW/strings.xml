@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">最亮螢幕小工具</string>
+    <string name="light_up_the_screen">使螢幕最亮</string>
+    <string name="allow_the_app_to_change_screen_brightness">請允許APP變更螢幕亮度</string>
+    <string name="this_phone_forbids_system_setting_modification">手機禁止了系統修改權限</string>
+</resources>
