@@ -73,22 +73,49 @@ public class BrightScreenWidget extends AppWidgetProvider {
         if (Objects.equals(intent.getAction(), ON_CLICK_INTENT_ACTION)) {
             changeLight(context);
         }
-        super.onReceive(context,intent);
+        super.onReceive(context, intent);
+    }
+
+    static boolean isAutoBrightness(Context context) {
+        boolean autoBrightness = false;
+        try {
+            autoBrightness = Settings.System.getInt(context.getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS_MODE) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return autoBrightness;
+    }
+
+    static int getScreenBrightness(Context context) {
+        int nowBrightnessValue = 0;
+        try {
+            nowBrightnessValue = android.provider.Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return nowBrightnessValue;
     }
 
     static void setScreenBrightnessManual(Context context) {
-        Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+        while (isAutoBrightness(context)) {
+            Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+            Log.d(LOG_TAG, "Set brightness manual");
+        }
     }
 
     static void setScreenBrightnessMax(Context context) {
-        Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 255);
+        while (getScreenBrightness(context) != 255) {
+            Log.d(LOG_TAG, "Set brightness max");
+            Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 255);
+        }
     }
 
     /**
      * Store current screen brightness settings to shared preference.
      */
     static void rememberCurrentScreenBrightnessSetting(Context context) {
-        int brightness = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+        int brightness = getScreenBrightness(context);
         int mode = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
         SharedPreferences settings = context.getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
@@ -104,8 +131,19 @@ public class BrightScreenWidget extends AppWidgetProvider {
         SharedPreferences settings = context.getSharedPreferences(SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE);
         int brightness = settings.getInt(SETTING_SCREEN_BRIGHTNESS, 128);
         int mode = settings.getInt(SETTING_SCREEN_BRIGHTNESS_MODE, 0);
-        Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, brightness);
-        Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, mode);
+        // Restore brightness mode
+        while (Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0) != mode) {
+            Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, mode);
+            Log.d(LOG_TAG, "Restore brightness " + ((mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) ? "auto" : "manual"));
+        }
+        // From Android 7.0 (API 25), brightness value reflects the actual brightness instead of the brightness level in auto mode.
+        if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
+            return;
+        // Restore brightness only in manual mode
+        while (getScreenBrightness(context) != brightness) {
+            Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, brightness);
+            Log.d(LOG_TAG, "Restore brightness " + brightness);
+        }
     }
 
     /**
@@ -157,6 +195,7 @@ public class BrightScreenWidget extends AppWidgetProvider {
      * To modify system setting, this widget must be granted permission ACTION_MANAGE_WRITE_SETTINGS.
      * The protection level of ACTION_MANAGE_WRITE_SETTINGS is "signature".
      * So do what it says. https://developer.android.com/reference/android/Manifest.permission.html#WRITE_SETTINGS
+     *
      * @return Whether WRITE_SETTINGS is granted.
      */
     static boolean requestWriteSettingPermission(Context context) {

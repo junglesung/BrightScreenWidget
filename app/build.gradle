@@ -7,8 +7,8 @@ android {
         applicationId "com.vernonsung.brightscreenwidget"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 4
-        versionName "1.1"
+        versionCode 5
+        versionName "1.2"
     }
     buildTypes {
         release {
